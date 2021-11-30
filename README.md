@@ -1,3 +1,4 @@
+_Internal fork of https://github.com/endre-spotlab/fast-forward-js-action, since it's owned by a single person and could easily be sketchy_
 
 # Fast Forward PR action
 
