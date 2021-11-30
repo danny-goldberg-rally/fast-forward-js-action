@@ -12,10 +12,44 @@ As a more advanced use case, this action can also update status API (with succes
 
 ![](media/ff-success-video.gif)
 
-- Comment ```/fast-forward``` in a pull request.
+- Comment ```/merge``` in a pull request.
 - Wait for the action to execute (~10 seconds)
 
-To set-up this GitHub action in your repository, check out the example workflow description file in .github/workflows/. You can see one set up for the basic use case, and one for the advanced use case.
+To set-up this GitHub action in your repository, check out the example workflow below:
+
+```
+name: Fast Forward Merge
+on:
+  pull_request:
+    branches:
+      - integration
+      - main
+  issue_comment:
+    types: [created]
+jobs:
+  fast_forward_merge:
+    name: Fast Forward
+
+    if: |
+        github.event.issue.pull_request != '' &&
+        contains(github.event.comment.body, '/merge')
+    runs-on: ubuntu-latest
+
+    steps:
+      # Workaround to access private actions
+      - name: Checkout GitHub Action Artifact Access
+        uses: actions/checkout@v2
+        with:
+          ssh-key: ${{ secrets.GLOBAL_GITHUB_SSH_KEY }}
+          repository: AudaxHealthInc/action-fast-forward-merge
+          ref: master
+          path: .github/actions/fast_forward_merge
+      # Run the private action
+      - name: Fast Forward PR
+        uses: ./.github/actions/fast_forward_merge
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
 
 ## Inputs
 
@@ -32,9 +66,9 @@ To set-up this GitHub action in your repository, check out the example workflow 
 - failure_message_diff_stage_and_prod:
   - Optional, failure message, when pull-request fast forward fails, and staging branch and production branch are at different commits
 - production_branch:
-  - Optional, production branch name. Default value is master.
+  - Optional, production branch name. Defaults to base branch.
 - staging_branch:
-  - Optional, staging or preproduction branch name. Default value is staging.
+  - Optional, staging or preproduction branch name. Defaults to source branch.
 
 ## How to modify action
 
